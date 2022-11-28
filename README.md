@@ -3,7 +3,7 @@
 Quick Start:
 
 This application can be run by simply unzipping the source archive, pictureTextCrop.tar.gz into 
-a new directory that you create to contain the application and its files.  Once unzipped, do into the
+a new directory that you create to contain the application and its files.  Once unzipped, go into the
 pictureTextCrop folder, and from there into its 'src' folder.  It should have the main application script in it, pictureTextCrop.py.
 To start the application, execute the following on the command line:
 
