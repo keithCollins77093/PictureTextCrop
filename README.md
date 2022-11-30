@@ -59,3 +59,6 @@ components saved in convenient formats are planned.
 MIME Information Collection:
 
 Coming Soon.
+
+If you would like to support this project, you can contribute here: https://www.buymeacoffee.com/keithmichah
+
