@@ -60,5 +60,10 @@ MIME Information Collection:
 
 Coming Soon.
 
+
+When processing digital evidence you must be careful to preserve the file metadata, especially the time stamps. 
+Know how operating systems treat timestamps and permissions when you copy files and how your archiving applications do as well. 
+
+
 If you would like to support this project, you can contribute here: https://www.buymeacoffee.com/keithmichah
 
