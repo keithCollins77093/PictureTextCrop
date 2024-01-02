@@ -1,79 +1,147 @@
+#   Project:        PictureTextCrop
 #   Author:         George Keith Watson
 #   Date Started:   November 4, 2022
 #   File:           pictureTextCrop.py
-#   Language:       Python 3.0+
-#   Copyright:      Copyright 2022 by George Keith Watson
+#   Language:       Python 3.6+
+#   Copyright:      Copyright 2022, 2023 by George Keith Watson
 #   License:        GNU LGPL 3.0 (GNU Lesser General Public License)
 #                   at: www.gnu.org/licenses/lgpl-3.0.html
+#   Development:
 #
+from collections import OrderedDict
 from os import environ
+from os.path import isdir
 from sys import argv
-from sqlite3 import connect
 
-from PySide6.QtCore import QCoreApplication, Qt, QRect
-from PySide6.QtWidgets import QApplication, QFileDialog
+from PyQt5.QtCore import QCoreApplication, Qt, QRect
+from PyQt5.QtWidgets import QApplication
 
-from model.Installation import TEXT_EXTRACTION_DB_FILE
-from view.Images import ImageManager
+from model.Configuration import AppConfig, ScanType
+from model.DbInterface import AppDatabase
+from view.Components import ImageManager, FileDialog, Scan, Extractor
 
-MODULE_NAME    = "Images"
+PROGRAM_NAME    = "PictureTextCrop"
 INSTALLING      = False
 TESTING         = True
 DEBUG           = False
+CONSOLE_LOGGING = False
+
+
+class PictureTextCrop:
+
+    def __init__(self):
+        self.folderSelectionDialog  = None
+        self.imageManager = None
+        self.currentImageFolder  = environ['HOME']
+        self.app = None
+
+    def launchApplication(self, config: dict=None):
+        if config is not None:
+            if not isinstance(config, dict):
+                raise Exception("PictureTextCrop constructor - Invalid config argument:  " + str(config))
+            self.config = config
+        else:
+            self.config = {}
+        AppConfig.setConfig(self.config)
+
+        self.app = QApplication(argv)
+        compatibility = 'QImageReader'
+
+        if TESTING:
+            print("Starting PictureTextCrop.py to process images compatible with:\t" + compatibility)
+
+        #   To make the tool load only files in the folder you select without traversing all folders under it,
+        #   set AppConfig._folderScanType to ScanType.LIST rather than ScanType.WALK.
+        #   ScanType.WALK will cause the folder scan to include all subfolders recursively.
+
+        self.currentImageFolder = AppConfig._defaultImageFolder
+        self.folderSelectedOnStart = False
+        if self.config['openWithFolderSelection']:
+            config = {'selectable': True,
+                      'title': "Select Folder to Scan for Image Files",
+                      'foldersOnly': True,
+                      'showCurrentPath': True,
+                      'selectionMode': 'extended'}
+            self.folderSelectionDialog = FileDialog(identifier='folderSelectionDialog',
+                                                    initialFolder=self.currentImageFolder, config=config,
+                                                    listener=self._messageReceiver, parent=None)
+            self.folderSelectionDialog.setGeometry(QRect(300, 200, 550, 450))
+            self.folderSelectionDialog.exec()
+
+        self.imageManager = ImageManager(config={'imageFileFolder': self.currentImageFolder,
+                                                    'scanType': self.config['folderScanType'],
+                                                    'extSet': compatibility,
+                                                    'folderSelectedOnStart': self.folderSelectedOnStart},
+                                         displayDimensions = {'width': self.app.primaryScreen().size().width(),
+                                                              'height': self.app.primaryScreen().size().height()},
+                                         listener=self._messageReceiver)
+        self.imageManager.setGeometry(QRect(100, 50, 1200, 500))
+        self.imageManager.setWindowTitle(PROGRAM_NAME)
+        self.imageManager.show()
+        self.app.exec()
+
+    def _messageReceiver(self, message):
+        if DEBUG:
+            print("FileDialog.messageReceiver:\t" + str(message))
+        if not isinstance(message, dict):
+            return
+        if 'source' in message:
+            #   {'source': 'FileViewFrame.closeFrame'}
+            if message['source'] == 'FileViewFrame.closeFrame':
+                self.folderSelectionDialog.close()
+                self.folderSelectionDialog = None
+            #   {'source': 'FileViewFrame.setSelection', 'selected': self.currentSelections}
+            elif message['source'] == 'FileViewFrame.setSelection':
+                if 'identifier' in message and message['identifier'] == 'folderSelectionDialog':
+                    if 'selected' in message and isinstance(message['selected'], tuple) and isdir(message['selected'][0]):
+                        self.currentImageFolder     = message['selected'][0]
+                        self.folderSelectedOnStart = True
+                        self.folderSelectionDialog.close()
+                        self.folderSelectionDialog = None
+            #   {'source': 'ImageManager.toolBarAction', 'actionId': actionId}
+            elif message['source'] == 'ImageManager.toolBarAction':
+                if 'actionId' in message and isinstance(message['actionId'], str):
+                    if message['actionId'] == 'Exit':
+                        self.app.exit(0)
+
+    def batchExtract(self, folderPath: str, scanType: str='walk', dbFileFolder: str=None,
+                     mimeTypes: tuple=None, fileExts: tuple=None):
+        #   Use class Scan from model.Folder to list or walk the folderPath for image files
+        #   Configuration should have option of using either file extension or the MIME type for
+        #       identification of image files
+        #   Possibly have option of selecting particular file extensions or MIME types to scan for.
+        pixMapImages = OrderedDict()
+        if scanType == 'walk':
+            Scan.walkFolder(folderPath, pixMapImages)
+        elif scanType == 'list':
+            Scan.listFolder(folderPath, pixMapImages)
+        Extractor.batchProcessAll(folderPath, pixMapImages, dbFileFolder)
+
+    def sequenceExtract(self, folderPath, scanType: str='walk', regExpr: str=None, dbFIleFolder: str=None,
+                        mimeTypes: tuple=None, fileExts: tuple=None):
+        """
+        This will load the files from the particular folder according to the scanType, filtered using optional
+        mimeTypes or fileExts, then extract the text of each, and then search in the text using the specified
+        regular expression.
+        Enhancements in future versions will include fuzzy matching via tokenization, type derivation with range
+        and set matching, e.g. dates and other numerical types, NLP phrase similarity matching,
+
+        :param folderPath:
+        :param scanType:
+        :param regExpr:
+        :param dbFIleFolder:
+        :param mimeTypes:
+        :param fileExts:
+        :return:
+        """
+        pass
 
 
 if __name__ == '__main__':
-    #   Initialize the database:
-    pictureTextDB = connect(TEXT_EXTRACTION_DB_FILE)
-    cursor = pictureTextDB.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS "BatchMaster" (
-                        "rowId"	INTEGER NOT NULL UNIQUE,
-                        "TimeStamp"	TEXT NOT NULL,
-                        "FolderPath"	TEXT NOT NULL,
-                        "FileName"	TEXT NOT NULL,
-                        "Text"	TEXT NOT NULL,
-                        "Info"	BLOB NOT NULL,
-                        "Exif"	BLOB NOT NULL,
-                        "MIME_info"	BLOB,
-                        PRIMARY KEY("rowId" AUTOINCREMENT))""")
-    cursor.execute("""CREATE TABLE IF NOT EXISTS "CropLog" (
-                        "rowId"	INTEGER NOT NULL UNIQUE,
-                        "timeStamp"	TEXT NOT NULL,
-                        "filePath"	TEXT NOT NULL,
-                        "coordinates"	BLOB NOT NULL,
-                        "text"	TEXT NOT NULL,
-                        PRIMARY KEY("rowId" AUTOINCREMENT))""")
+    AppDatabase.initializeDatabase()
 
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 
-    #   Choice of the extension set should be made with the command line.
-    #   dialog = ImageManager(config={'imageFileFolder': folderPath, 'scanType': 'list', 'extSet': "Pixmap"})
-    app = QApplication(argv)
-    if len(argv) > 1 and argv[1] in ('Pillow, "PixMap'):
-        compatibility = argv[1]
-    else:
-        compatibility = 'Pillow'
+    PictureTextCrop().launchApplication(config=AppDatabase.loadConfig())
 
-    print("Starting PictureTextCrop.py to process images compatible with:\t" + compatibility)
-
-    fileDialog = QFileDialog(parent=None, directory=environ['HOME'])
-    #   fileDialog.setFileMode(QFileDialog.FileMode.Directory)
-    #   fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
-    fileDialog.setOption(QFileDialog.Option.ShowDirsOnly)
-    fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog)
-    fileDialog.setOption(QFileDialog.Option.DontResolveSymlinks)
-    fileDialog.setOption(QFileDialog.Option.ReadOnly)
-    fileDialog.exec()
-    selections = fileDialog.selectedFiles()
-    if TESTING:
-        print(str(selections))
-    folderPath = selections[0]
-    #   To make the tool load only filed in the folder you select without traversing all folders under it,
-    #   set config['scanType'] to 'list' rather than 'walk'.  'walk' will cause the folder scan to
-    #   include all subfolders recursively.
-    dialog = ImageManager(config={'imageFileFolder': folderPath, 'scanType': 'walk', 'extSet': compatibility})
-    dialog.setGeometry(QRect(100, 50, 1200, 500))
-    dialog.setWindowTitle(MODULE_NAME)
-    dialog.show()
-    app.exec()
