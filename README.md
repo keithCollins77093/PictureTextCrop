@@ -1,8 +1,30 @@
 # pictureTextCrop
 
-This application can be run by installing the python package dependencies using pip and then simply unzipping the source archive, pictureTextCrop.tar.gz into a new directory that you create to contain the application and its files.  The python packages required, available at PyPI.org, include one rather large one, PyQt5.  The complete list of packages required is: PyQt5, pytesseract , and Pillow.
+This application can be run by installing the python package dependencies using pip and then simply unzipping the source archive, pictureTextCrop.tar.gz into a new directory that you create to contain the application and its files.  The python packages required, available at PyPI.org, include one rather large one, PyQt5.  The complete list of packages required is: PyQt5, pytesseract, and Pillow, which is included as a library module in current releases of Python.
 
-Once unzipped, go into the pictureTextCrop folder, and locate the pictureTextCrop.py source file. To start the application, execute the following on the command line:
+Installation Steps:
+
+1.    Download the source code archive from this account: PictureTextCrop-main.zip.
+2.    Put it in a folder you make to host this application.
+3.    Extract the source code archive in its application folder.
+4.    Go into the extrated folder, then into the src/ folder.  You will find the main python file: pictureTextCrop.py.  This is the file you will run in a console.
+      Open a console / terminal in this folder.  This is the working folder for the application.
+6.    Check your python version with python -V or python3 -V.  If these do not work try the -h option for a list of options available.
+        (Installing python is beyond the scope of this Quick Start guide.)
+7.    If the python package installer, pip, is not installed, execute the following command in the console:
+          sudo apt install python3-pip
+8.    To install the python GUI package required, execute:
+          pip install PyQt5
+9.    Then to install the text extraction package, run:
+           pip install pytesseract
+      then
+          sudo apt install tesseract_ocr
+10.    Although sqlite3 is provided in python as a library, you will want to use it outside of this context and will want a GUI viewer for the database file:
+           sudo apt install sqlite3
+           sudo apt install squlitebrowser
+   
+
+Once these steps succeed, go into the PictureTextCrop-main folder, then into its src/ folder, and locate the pictureTextCrop.py source file. To start the application, execute the following on the command line:
 
 $ python3 pictureTextCrop.py
 
