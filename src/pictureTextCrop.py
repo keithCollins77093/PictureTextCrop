@@ -47,7 +47,7 @@ class PictureTextCrop:
         self.app = QApplication(argv)
         compatibility = 'QImageReader'
 
-        if TESTING:
+        if DEBUG:
             print("Starting PictureTextCrop.py to process images compatible with:\t" + compatibility)
 
         #   To make the tool load only files in the folder you select without traversing all folders under it,
