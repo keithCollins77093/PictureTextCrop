@@ -118,7 +118,7 @@ class HelpDialog(QMainWindow):
         self.__dict__[key] = value
 
     def messageReceiver(self, message: dict):
-        if TESTING:
+        if DEBUG:
             print("EvidenceHelpDialog.messageReceiver:\t" + str(message))
         if not isinstance(message, dict):
             return
@@ -131,20 +131,3 @@ class HelpDialog(QMainWindow):
 if __name__ == "__main__":
     print("Running:\t" + MODULE_NAME)
 
-    config = {
-        'helpTopics': {
-            'About': HELP_DOCS_FOLDER + '/' + HELP_ABOUT_FILE,
-            'Quick Start': HELP_DOCS_FOLDER + '/' + HELP_QUICK_START_FILE,
-            'File System': HELP_DOCS_FOLDER + '/' + FILE_SYSTEM_TECH
-        }
-    }
-
-    app = QApplication(argv)
-
-    dialog = HelpDialog(config=config)
-    dialog.setGeometry(QRect(100, 50, 1000, 550))
-    dialog.setWindowTitle(MODULE_NAME)
-    #   dialog.setCentralWidget(WebViewFrame(config=config))
-    dialog.show()
-
-    app.exec()

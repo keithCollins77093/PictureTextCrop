@@ -257,7 +257,7 @@ class KeyListView(QListView):
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         super(KeyListView, self).mousePressEvent(event)
-        if TESTING:
+        if DEBUG:
             print("KeyListView.mousePressEvent:\t" + str(event))
 
         if self.selectionModel() is None:
@@ -297,7 +297,7 @@ class KeyListView(QListView):
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         super(KeyListView, self).keyPressEvent(event)
-        if TESTING:
+        if DEBUG:
             print("KeyListView.keyPressEvent:\t" + str(event.key()))
         if self.listener is not None:
             if event.key() == 16777216:      #   [esc] key pressed
@@ -427,6 +427,6 @@ class EditorLine(QLineEdit):
                            'newValue': self.text()})
 
     def popupMenuAction(self, actionName):
-        if TESTING:
+        if DEBUG:
             print("EditorLine.popupMenuAction:\t" + str(actionName))
 

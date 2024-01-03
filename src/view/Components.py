@@ -1786,9 +1786,8 @@ class ImageManager(QMainWindow):
         self.mainToolBar.addWidget(self.buttonHelpToggle)
         """
 
-        self.fileCheckedList  = {}
-        self.fileSelectionList = {}
-
+        self.fileCheckedList  = OrderedDict()
+        self.fileSelectionList = OrderedDict()
         self.listViewFiles = FileListView(identifier='listViewFiles', imageMap=self.pixMapImages,
                                           config={'listType': self.config['scanType']},
                                           listener=self.messageReceiver, parent=self.contentFrame)
@@ -2137,8 +2136,10 @@ class ImageManager(QMainWindow):
     def runImageFileCropSelectionList(self):
         for filePath, selected in self.fileSelectionList.items():
             if selected:
-                if TESTING:
+                if DEBUG:
                     print("ImageManager.runImageFileCropSelectionList:\n\t" + filePath)
+                if self.pixMapImages[filePath] is None:
+                    self.pixMapImages[filePath] = Scan.readImage(filePath)
                 config = {'topLeft': QPoint(200, 100), 'exitOnSelect': True}
                 self.textSelector = TextSelector(identifier='sequenceTextSelector',
                                                  pixMapImage=self.pixMapImages[filePath],
@@ -2250,19 +2251,22 @@ class ImageManager(QMainWindow):
         row = 0
         model = self.listViewFiles.selectionModel()
         if self.iconActionSelectAllFiles.isChecked() or self.menuActionSelectAll.isChecked():
-            for filePath in self.pixMapImages:
+            for filePath in self.pixMapImages.keys():
                 #   self.listItemMap[filePath].setCheckState(True)
                 #   self.listItemMap[filePath].checkState().Checked = Qt.CheckState.Checked
                 index   = self.fileListModel.index(row, 0)
                 model.select(index, QItemSelectionModel.Select)
+                self.fileSelectionList[filePath] = True
                 row += 1
             self.iconActionSelectAllFiles.setToolTip("Deselect all images in the current list")
             self.iconActionSelectAllFiles.setStatusTip("Deselect all images in the current list")
         else:
-            for filePath in self.pixMapImages:
+            for filePath in self.pixMapImages.keys():
                 index   = self.fileListModel.index(row, 0)
                 model.select(index, QItemSelectionModel.Deselect)
                 row += 1
+            self.fileSelectionList = OrderedDict()
+
             self.iconActionSelectAllFiles.setToolTip("Select all images in the current list")
             self.iconActionSelectAllFiles.setStatusTip("Select all images in the current list")
 
@@ -2279,8 +2283,9 @@ class ImageManager(QMainWindow):
                 if 'action' in message:
                     if message['action'] == 'close requested':
                         if 'fileName' in message:
-                            self.textSelectorMap[message['fileName']].destroy()
-                            del(self.textSelectorMap[message['fileName']])
+                            if message['fileName'] in self.textSelectorMap:
+                                self.textSelectorMap[message['fileName']].destroy()
+                                del(self.textSelectorMap[message['fileName']])
                             self.listItemMap[message['fileName']].setCheckState(Qt.CheckState.Unchecked)
 
             #   {'source': 'FileListView.mousePressEvent', 'selectionText': self.currentImageFilePath}
