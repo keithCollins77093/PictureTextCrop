@@ -12,15 +12,22 @@ Installation Steps:
 6.    Check your python version with python -V or python3 -V.  If these do not work try the -h option for a list of options available.
         (Installing python is beyond the scope of this Quick Start guide.)
 7.    If the python package installer, pip, is not installed, execute the following command in the console:
+  
           sudo apt install python3-pip
-8.    To install the python GUI package required, execute:
+9.    To install the python GUI package required, execute:
+   
           pip install PyQt5
-9.    Then to install the text extraction package, run:
+11.    Then to install the text extraction package, run:
+   
            pip install pytesseract
+   
       then
+      
           sudo apt install tesseract_ocr
-10.    Although sqlite3 is provided in python as a library, you will want to use it outside of this context and will want a GUI viewer for the database file:
+13.    Although sqlite3 is provided in python as a library, you will want to use it outside of this context and will want a GUI viewer for the database file:
+   
            sudo apt install sqlite3
+   
            sudo apt install squlitebrowser
    
 
