@@ -9,7 +9,7 @@ Installation Steps:
 3.    Extract the source code archive in its application folder.
 4.    Go into the extrated folder, then into the src/ folder.  You will find the main python file: pictureTextCrop.py.  This is the file you will run in a console.
       Open a console / terminal in this folder.  This is the working folder for the application.
-6.    Check your python version with python -V or python3 -V.  If these do not work try the -h option for a list of options available.
+6.    Check your python version with python -V or python3 -V.  If these do not work try the -h option for a list of options available.  The version must be 3.6 or higher.
         (Installing python is beyond the scope of this Quick Start guide.)
 7.    If the python package installer, pip, is not installed, execute the following command in the console:<br>
   
