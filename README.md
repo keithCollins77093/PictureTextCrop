@@ -11,7 +11,7 @@ Installation Steps:
       Open a console / terminal in this folder.  This is the working folder for the application.
 6.    Check your python version with python -V or python3 -V.  If these do not work try the -h option for a list of options available.
         (Installing python is beyond the scope of this Quick Start guide.)
-7.    If the python package installer, pip, is not installed, execute the following command in the console:
+7.    If the python package installer, pip, is not installed, execute the following command in the console:<br>
   
           sudo apt install python3-pip
 9.    To install the python GUI package required, execute:
